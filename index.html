@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#090d16" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="KadroKur" />
+  <link rel="manifest" href="./manifest.json" />
+  <title>KadroKur | Futbol Burada Başlar</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #101827;
+      --glass: rgba(5, 13, 22, 0.78);
+      --line: rgba(255, 255, 255, 0.12);
+      --green: #34d399;
+      --green-bright: #7aebbf;
+      --green-deep: #10b981;
+      --green-foreground: #052b20;
+      --ink: #ffffff;
+      --subtle: #a9b7c8;
+      --shadow: rgba(0, 0, 0, 0.42);
+      /* Halı saha görseli: kendi görsel URL'ni veya base64/path verini buraya yazabilirsin */
+      --pitch-img: url("./assets/football-pitch.jpg");
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      font-family: "Space Grotesk", sans-serif;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    ::selection {
+      background: var(--green);
+      color: var(--bg);
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--green);
+      outline-offset: 3px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Üst Menü */
+    .topbar {
+      height: 84px;
+      padding: 0 6%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(9, 13, 22, 0.92);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 23px;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      background: none;
+      border: 0;
+      color: var(--ink);
+      padding: 0;
+    }
+
+    .brand-accent {
+      color: var(--green);
+    }
+
+    .brand small {
+      display: block;
+      font-size: 8px;
+      letter-spacing: 0.14em;
+      color: var(--subtle);
+      max-width: 64px;
+      line-height: 1.35;
+      margin-left: 4px;
+      text-align: left;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 37px;
+      border: 2px solid var(--green);
+      border-radius: 5px 5px 12px 12px;
+      transform: skew(-8deg);
+      display: grid;
+      place-items: center;
+    }
+
+    .brand-mark span {
+      height: 18px;
+      width: 13px;
+      border-left: 3px solid var(--green);
+      border-right: 3px solid var(--green);
+      transform: skew(22deg);
+    }
+
+    .topbar nav {
+      display: flex;
+      gap: 36px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--subtle);
+    }
+
+    .nav-btn {
+      background: none;
+      border: 0;
+      color: inherit;
+      padding: 6px 0;
+      transition: color 0.2s;
+    }
+
+    .nav-btn:hover,
+    .nav-btn.active,
+    .top-link:hover {
+      color: var(--green);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .top-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      background: none;
+      border: 0;
+      color: var(--ink);
+    }
+
+    .user-pill {
+      font-size: 12px;
+      color: var(--green);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--subtle);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .icon-btn:hover {
+      color: var(--green);
+      border-color: rgba(52, 211, 153, 0.45);
+    }
+
+    /* Hero & Sağ Menü Kutusu */
+    .hero {
+      min-height: 640px;
+      background-image:
+        linear-gradient(90deg, rgba(5, 13, 22, 0.96) 0%, rgba(5, 13, 22, 0.74) 48%, rgba(5, 13, 22, 0.32) 100%),
+        linear-gradient(0deg, #090d16 0%, transparent 45%),
+        var(--pitch-img);
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    .hero-grid {
+      max-width: 1480px;
+      margin: 0 auto;
+      min-height: 640px;
+      display: grid;
+      grid-template-columns: 1fr 395px;
+      align-items: center;
+      gap: 64px;
+      padding: 60px 6%;
+    }
+
+    .eyebrow,
+    .section-index {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      font-weight: 700;
+      color: var(--green);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-transform: uppercase;
+    }
+
+    .live-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 12px var(--green);
+    }
+
+    .eyebrow-line {
+      height: 1px;
+      width: 48px;
+      background: var(--green);
+      opacity: 0.55;
+    }
+
+    .hero h1,
+    .auth-visual h1 {
+      font-family: "Barlow Condensed", sans-serif;
+      font-weight: 700;
+      font-size: clamp(60px, 7vw, 102px);
+      line-height: 0.88;
+      letter-spacing: -0.015em;
+      margin: 24px 0 22px;
+    }
+
+    .hero h1 em,
+    .auth-visual h1 em {
+      font-style: normal;
+      color: var(--green);
+    }
+
+    .hero-copy > p {
+      font-size: 16px;
+      line-height: 1.7;
+      color: #c7d1dc;
+      margin: 0;
+      max-width: 520px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      margin-top: 34px;
+      flex-wrap: wrap;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      border: 1px solid var(--green);
+      background: var(--green);
+      color: var(--green-foreground);
+      min-height: 50px;
+      padding: 0 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .primary-btn:hover {
+      background: var(--green-bright);
+      box-shadow: 0 0 24px rgba(52, 211, 153, 0.28);
+    }
+
+    .secondary-btn {
+      background: transparent;
+      color: var(--green);
+    }
+
+    .text-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border: 0;
+      background: none;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 0;
+    }
+
+    .text-btn:hover {
+      color: var(--green);
+    }
+
+    .hero-foot {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 64px;
+      color: var(--subtle);
+      font-size: 9px;
+      letter-spacing: 0.16em;
+    }
+
+    .hero-foot span:first-child {
+      color: var(--green);
+    }
+
+    .foot-line {
+      height: 1px;
+      width: 68px;
+      background: var(--subtle);
+      opacity: 0.4;
+    }
+
+    .welcome-panel {
+      background: var(--glass);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(18px);
+      padding: 26px;
+      border-radius: 7px;
+      box-shadow: 0 20px 60px var(--shadow);
+    }
+
+    .panel-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .panel-kicker,
+    .panel-index {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+    }
+
+    .panel-kicker {
+      color: var(--green);
+    }
+
+    .panel-index {
+      color: var(--subtle);
+    }
+
+    .panel-heading h2,
+    .below h2,
+    .auth-form-wrap h2,
+    .app-heading h1,
+    .list-heading h2,
+    .form-heading h2 {
+      font-family: "Barlow Condensed", sans-serif;
+      font-weight: 700;
+      line-height: 1;
+      margin: 8px 0;
+      font-size: 36px;
+    }
+
+    .panel-heading p {
+      color: var(--subtle);
+      font-size: 12px;
+      margin: 0;
+    }
+
+    .menu-list {
+      margin-top: 22px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .menu-item {
+      width: 100%;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border: 1px solid var(--line);
+      padding: 13px 14px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.025);
+      color: var(--ink);
+      transition: 0.2s;
+    }
+
+    .menu-item:hover,
+    .menu-item.active {
+      border-color: rgba(52, 211, 153, 0.55);
+      background: rgba(16, 185, 129, 0.13);
+    }
+
+    .menu-icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      color: var(--green);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .menu-item strong,
+    .menu-item small {
+      display: block;
+    }
+
+    .menu-item strong {
+      font-size: 13px;
+    }
+
+    .menu-item small {
+      font-size: 11px;
+      color: var(--subtle);
+      margin-top: 4px;
+    }
+
+    .menu-arrow {
+      margin-left: auto;
+      color: var(--subtle);
+    }
+
+    .menu-item:hover .menu-arrow,
+    .menu-item.active .menu-arrow {
+      color: var(--green);
+    }
+
+    .panel-bottom {
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+      margin-top: 22px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 8px;
+      letter-spacing: 0.12em;
+      color: var(--subtle);
+    }
+
+    /* Alt Bölüm */
+    .below {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 64px 6% 24px;
+    }
+
+    .below-intro {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+    }
+
+    .below h2 {
+      font-size: 40px;
+      margin: 0;
+      width: 68%;
+    }
+
+    .below h2 span {
+      color: var(--green);
+    }
+
+    .feature-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+      margin: 42px 0;
+    }
+
+    .feature-row > div {
+      border-top: 1px solid var(--line);
+      padding-top: 20px;
+    }
+
+    .feature-badge {
+      display: inline-block;
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      margin-bottom: 12px;
+    }
+
+    .feature-row strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
+    .feature-row p {
+      color: var(--subtle);
+      font-size: 13px;
+      line-height: 1.65;
+      margin: 0;
+      max-width: 280px;
+    }
+
+    .bottom-cta {
+      padding: 22px 0;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      color: var(--subtle);
+    }
+
+    .bottom-cta a,
+    .bottom-cta button {
+      color: var(--green);
+      background: none;
+      border: 0;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 28px 6%;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      color: var(--subtle);
+      font-size: 12px;
+    }
+
+    footer > span {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    footer > span span {
+      color: var(--green);
+    }
+
+    footer small {
+      margin-left: auto;
+    }
+
+    /* Split Giriş / Üye Ol Ekranı */
+    .auth-layout {
+      min-height: calc(100vh - 84px);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .auth-visual {
+      background-image:
+        linear-gradient(0deg, rgba(5, 13, 22, 0.96), rgba(5, 13, 22, 0.28)),
+        var(--pitch-img);
+      background-size: cover;
+      background-position: center;
+      padding: 46px 7%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .auth-visual h1 {
+      font-size: 68px;
+    }
+
+    .auth-visual p,
+    .auth-visual small {
+      color: var(--subtle);
+    }
+
+    .auth-visual small {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+    }
+
+    .auth-main {
+      padding: 44px 8%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--subtle);
+      background: none;
+      border: 0;
+      padding: 0;
+      width: fit-content;
+    }
+
+    .back-link:hover {
+      color: var(--green);
+    }
+
+    .auth-form-wrap {
+      width: 100%;
+      max-width: 420px;
+      margin: auto;
+    }
+
+    .auth-form-wrap h2 {
+      font-size: 46px;
+      margin: 14px 0 8px;
+    }
+
+    .auth-form-wrap > p,
+    .app-heading p,
+    .form-heading p,
+    .list-heading p {
+      color: var(--subtle);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--line);
+      margin: 28px 0 22px;
+    }
+
+    .tabs button {
+      border: 0;
+      border-bottom: 2px solid transparent;
+      background: none;
+      color: var(--subtle);
+      padding: 0 18px 12px 0;
+      margin-right: 20px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .tabs button.selected {
+      color: var(--green);
+      border-color: var(--green);
+    }
+
+    .form,
+    .form-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .form label,
+    .form-grid label {
+      display: grid;
+      gap: 7px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    input,
+    select {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      color: var(--ink);
+      padding: 13px 14px;
+      min-height: 46px;
+      width: 100%;
+      color-scheme: dark;
+    }
+
+    input::placeholder {
+      color: #8999aa;
+    }
+
+    .full {
+      width: 100%;
+      margin-top: 6px;
+      justify-content: space-between;
+    }
+
+    .error-box {
+      font-size: 13px;
+      color: #ffb8b8;
+      background: rgba(180, 45, 45, 0.16);
+      border: 1px solid rgba(255, 130, 130, 0.28);
+      padding: 12px 14px;
+      border-radius: 4px;
+    }
+
+    /* Maç Odaları & Detay */
+    .app-main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 56px 28px 96px;
+    }
+
+    .app-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 42px;
+    }
+
+    .app-heading h1 {
+      font-size: 56px;
+      margin: 12px 0 6px;
+      text-transform: uppercase;
+    }
+
+    .create-form {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 26px;
+      border-radius: 6px;
+      margin-bottom: 44px;
+    }
+
+    .form-heading h2 {
+      font-size: 28px;
+      margin: 0 0 6px;
+    }
+
+    .form-grid {
+      grid-template-columns: repeat(2, 1fr);
+      margin: 22px 0;
+    }
+
+    .list-heading {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 18px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .list-heading h2 {
+      font-size: 26px;
+      margin: 0;
+    }
+
+    .list-heading > span,
+    .status-badge {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .empty-box {
+      text-align: center;
+      padding: 58px 24px;
+      border: 1px dashed var(--line);
+      border-radius: 6px;
+      margin-top: 20px;
+      color: var(--subtle);
+    }
+
+    .room-list {
+      display: grid;
+    }
+
+    .room-row {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      padding: 20px 12px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: var(--ink);
+      transition: background 0.2s;
+    }
+
+    .room-row:hover {
+      background: var(--panel);
+    }
+
+    .room-icon {
+      height: 46px;
+      width: 46px;
+      display: grid;
+      place-items: center;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--green);
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .room-title {
+      flex: 1;
+    }
+
+    .room-title h3 {
+      font-size: 15px;
+      margin: 0 0 6px;
+    }
+
+    .room-title span,
+    .room-meta span {
+      font-size: 12px;
+      color: var(--subtle);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .room-meta {
+      display: flex;
+      gap: 24px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      margin-top: 24px;
+    }
+
+    .detail-grid > div {
+      padding: 28px 24px 28px 0;
+    }
+
+    .detail-grid span,
+    .detail-grid strong {
+      display: block;
+    }
+
+    .detail-grid span {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--green);
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .detail-grid strong {
+      font-size: 16px;
+    }
+
+    .detail-grid p,
+    .detail-note {
+      font-size: 13px;
+      color: var(--subtle);
+    }
+
+    @media (max-width: 860px) {
+      .topbar {
+        height: 72px;
+        padding: 0 20px;
+      }
+
+      .topbar nav {
+        display: none;
+      }
+
+      .brand {
+        font-size: 20px;
+      }
+
+      .brand small {
+        display: none;
+      }
+
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 36px;
+        padding: 56px 22px 36px;
+      }
+
+      .hero h1 {
+        font-size: 66px;
+      }
+
+      .hero-foot {
+        margin-top: 36px;
+      }
+
+      .below h2 {
+        width: 100%;
+        font-size: 32px;
+      }
+
+      .below-intro,
+      .app-heading,
+      .bottom-cta {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .feature-row,
+      .detail-grid,
+      .auth-layout,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-visual {
+        min-height: 320px;
+      }
+
+      .auth-visual h1 {
+        font-size: 46px;
+      }
+
+      .room-row {
+        flex-wrap: wrap;
+      }
+
+      .room-meta {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 10px 18px;
+      }
+
+      footer {
+        flex-wrap: wrap;
+      }
+
+      footer small {
+        margin-left: 0;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <button type="button" class="brand" data-view="home">
+      <span class="brand-mark"><span></span></span>
+      <span>KADRO<span class="brand-accent">KUR</span></span>
+      <small>FOOTBALL COMMUNITY</small>
+    </button>
+
+    <nav aria-label="Ana gezinme">
+      <button type="button" class="nav-btn active" data-view="home">Ana sayfa</button>
+      <button type="button" class="nav-btn" data-view="rooms">Maç odaları</button>
+    </nav>
+
+    <div class="top-actions">
+      <span id="headerUser" class="user-pill hidden"></span>
+      <button type="button" id="logoutBtn" class="icon-btn hidden">Çıkış yap</button>
+      <button type="button" id="headerLoginBtn" class="top-link" data-view="login">
+        Giriş yap <span>↗</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- GÖRÜNÜM 1: ANA SAYFA -->
+  <section id="view-home" class="page-view">
+    <div class="hero">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow">
+            <span class="live-dot"></span> FUTBOL BURADA BAŞLAR <span class="eyebrow-line"></span>
+          </div>
+          <h1>
+            OYUNUNU<br />
+            <em>SAHAYA TAŞI.</em>
+          </h1>
+          <p>
+            Maçını planla, oyuncuları bir araya getir. Futbolun heyecanı burada yeniden başlıyor.
+          </p>
+          <div class="hero-actions">
+            <button type="button" class="primary-btn" data-view="rooms">
+              Maçları keşfet <span>↗</span>
+            </button>
+            <button type="button" class="text-btn" data-view="login">
+              Kadroya katıl <span>→</span>
+            </button>
+          </div>
+          <div class="hero-foot">
+            <span>01 / 90</span>
+            <span class="foot-line"></span>
+            <span>HER MAÇ BİR HİKAYE</span>
+          </div>
+        </div>
+
+        <aside class="welcome-panel">
+          <div class="panel-heading">
+            <div>
+              <span class="panel-kicker">OYUNA HAZIR MISIN?</span>
+              <h2>SAHAYA ÇIK.</h2>
+              <p>Başlamak için bir yol seç.</p>
+            </div>
+            <span class="panel-index">KK / 01</span>
+          </div>
+
+          <div class="menu-list">
+            <button type="button" class="menu-item active" data-view="rooms">
+              <span class="menu-icon">◎</span>
+              <span>
+                <strong>Maçları keşfet</strong>
+                <small>Odanı bul, oyuna katıl</small>
+              </span>
+              <span class="menu-arrow">↗</span>
+            </button>
+
+            <button type="button" class="menu-item" data-view="login">
+              <span class="menu-icon">☺</span>
+              <span>
+                <strong>Üye ol / Giriş yap</strong>
+                <small>Futbol topluluğuna katıl</small>
+              </span>
+              <span class="menu-arrow">↗</span>
+            </button>
+
+            <button type="button" class="menu-item" data-open-create="true">
+              <span class="menu-icon">+</span>
+              <span>
+                <strong>Maç odası oluştur</strong>
+                <small>Kendi maçını organize et</small>
+              </span>
+              <span class="menu-arrow">↗</span>
+            </button>
+          </div>
+
+          <div class="panel-bottom">
+            <span><span class="live-dot"></span> KADROKUR TOPLULUĞU</span>
+            <span>OYUN SENİNLE GÜZEL</span>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <div class="below">
+      <div class="below-intro">
+        <span class="section-index">KADROKUR / 01</span>
+        <h2>
+          İYİ MAÇLAR<br />
+          <span>İYİ KADROLARLA BAŞLAR.</span>
+        </h2>
+      </div>
+
+      <div class="feature-row">
+        <div>
+          <span class="feature-badge">01 / KADRO</span>
+          <strong>Takımını kur</strong>
+          <p>Futbolu seven insanları aynı sahada buluştur.</p>
+        </div>
+        <div>
+          <span class="feature-badge">02 / PLAN</span>
+          <strong>Maçını planla</strong>
+          <p>Şehir, saha ve zamanı belirle; odanı oluştur.</p>
+        </div>
+        <div>
+          <span class="feature-badge">03 / SAHA</span>
+          <strong>Oyuna katıl</strong>
+          <p>Odaları keşfet ve bir sonraki maçta yerini al.</p>
+        </div>
+      </div>
+
+      <div class="bottom-cta">
+        <div>FUTBOLUN YERİ AYRI</div>
+        <button type="button" data-view="rooms">Maç odalarına git <span>→</span></button>
+      </div>
+    </div>
+
+    <footer>
+      <span>KADRO<span>KUR</span></span>
+      <p>Birlikte daha iyi oyun.</p>
+      <small>© <span id="yearSpan">2026</span> KadroKur</small>
+    </footer>
+  </section>
+
+  <!-- GÖRÜNÜM 2: GİRİŞ / ÜYE OL -->
+  <section id="view-login" class="page-view hidden">
+    <main class="auth-layout">
+      <section class="auth-visual">
+        <button type="button" class="brand" data-view="home">
+          <span class="brand-mark"><span></span></span>
+          <span>KADRO<span class="brand-accent">KUR</span></span>
+          <small>FOOTBALL COMMUNITY</small>
+        </button>
+
+        <div>
+          <span class="eyebrow">OYUNUN YERİ BURASI</span>
+          <h1>
+            HER MAÇ<br />
+            <em>YENİ BİR HİKAYE.</em>
+          </h1>
+          <p>Kadronu kur, sahaya çık, oyunun tadını çıkar.</p>
+        </div>
+
+        <small>KADROKUR / FUTBOL TOPLULUĞU</small>
+      </section>
+
+      <section class="auth-main">
+        <button type="button" class="back-link" data-view="home">← Ana sayfaya dön</button>
+
+        <div class="auth-form-wrap">
+          <span class="section-index">KADROKUR'A HOŞ GELDİN</span>
+          <h2 id="authTitle">TEKRAR HOŞ GELDİN.</h2>
+          <p id="authSubtitle">Giriş yap ve kaldığın yerden devam et.</p>
+
+          <div class="tabs">
+            <button type="button" id="tabLogin" class="selected">Giriş yap</button>
+            <button type="button" id="tabSignup">Üye ol</button>
+          </div>
+
+          <form id="authForm" class="form">
+            <label id="nameFieldWrap" class="hidden">
+              Adın
+              <input id="authName" type="text" placeholder="Adın ve soyadın" />
+            </label>
+
+            <label>
+              E-posta
+              <input id="authEmail" type="email" required placeholder="ornek@email.com" />
+            </label>
+
+            <label>
+              Şifre
+              <input id="authPassword" type="password" required minlength="6" placeholder="En az 6 karakter" />
+            </label>
+
+            <div id="authError" class="error-box hidden" role="alert"></div>
+
+            <button type="submit" id="authSubmitBtn" class="primary-btn full">
+              Giriş yap <span>→</span>
+            </button>
+          </form>
+        </div>
+      </section>
+    </main>
+  </section>
+
+  <!-- GÖRÜNÜM 3: MAÇ ODALARI -->
+  <section id="view-rooms" class="page-view hidden">
+    <main class="app-main">
+      <div class="app-heading">
+        <div>
+          <span class="section-index">KADROKUR / KEŞFET</span>
+          <h1>MAÇ ODALARI</h1>
+          <p>Bir sonraki maçını bul veya kendi odanı oluştur.</p>
+        </div>
+        <button type="button" id="toggleCreateBtn" class="primary-btn">
+          + Oda oluştur
+        </button>
+      </div>
+
+      <form id="createRoomForm" class="create-form hidden">
+        <div class="form-heading">
+          <h2>YENİ MAÇ ODASI</h2>
+          <p>Maçın detaylarını ekle, oyuncular seni bulsun.</p>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            Oda adı
+            <input id="roomTitle" type="text" required minlength="3" maxlength="80" placeholder="Örn. Salı akşamı maçı" />
+          </label>
+          <label>
+            Şehir
+            <input id="roomCity" type="text" required minlength="2" maxlength="80" placeholder="Örn. İstanbul" />
+          </label>
+          <label>
+            Saha / konum
+            <input id="roomLocation" type="text" required minlength="2" maxlength="120" placeholder="Saha adı veya semt" />
+          </label>
+          <label>
+            Maç tarihi ve saati
+            <input id="roomStartsAt" type="datetime-local" required />
+          </label>
+          <label>
+            Oyuncu hedefi
+            <input id="roomCapacity" type="number" min="2" max="30" value="14" required />
+          </label>
+        </div>
+
+        <div id="roomError" class="error-box hidden" role="alert"></div>
+
+        <button type="submit" id="createRoomSubmit" class="primary-btn">
+          Odayı oluştur <span>↗</span>
+        </button>
+      </form>
+
+      <div class="list-heading">
+        <div>
+          <h2>SAHAYA ÇIKMAYA HAZIR ODALAR</h2>
+          <p>Topluluk tarafından oluşturulan maçlar</p>
+        </div>
+        <span id="roomCountLabel">0 ODA</span>
+      </div>
+
+      <div id="roomsEmpty" class="empty-box hidden">
+        <h3>İlk maçı sen başlat.</h3>
+        <p>Henüz oluşturulmuş bir maç odası yok.</p>
+        <button type="button" id="emptyCreateBtn" class="text-btn">Oda oluştur ↗</button>
+      </div>
+
+      <div id="roomList" class="room-list"></div>
+    </main>
+  </section>
+
+  <!-- GÖRÜNÜM 4: ODA DETAYI -->
+  <section id="view-detail" class="page-view hidden">
+    <main class="app-main">
+      <button type="button" class="back-link" data-view="rooms">← Tüm maç odaları</button>
+
+      <div class="app-heading" style="margin-top: 28px;">
+        <div>
+          <span class="section-index">MAÇ ODASI / DETAYLAR</span>
+          <h1 id="detailTitle">MAÇ ODASI</h1>
+          <p>Maç detaylarını incele, kadrodaki yerini al.</p>
+        </div>
+        <div id="detailActionWrap"></div>
+      </div>
+
+      <div class="detail-grid">
+        <div>
+          <span>ŞEHİR VE SAHA</span>
+          <strong id="detailCity">-</strong>
+          <p id="detailLocation">-</p>
+        </div>
+        <div>
+          <span>MAÇ ZAMANI</span>
+          <strong id="detailDate">-</strong>
+          <p id="detailTime">-</p>
+        </div>
+        <div>
+          <span>OYUNCULAR</span>
+          <strong id="detailCount">-</strong>
+          <p id="detailCapacity">-</p>
+        </div>
+      </div>
+
+      <p class="detail-note">Oyuncu sayısı bir hedeftir; katılım bu sayıyla sınırlandırılmaz.</p>
+    </main>
+  </section>
+
+  <script>
+    document.getElementById("yearSpan").textContent = String(new Date().getFullYear());
+
+    // =========================================================================
+    // 1. KENDİ FIREBASE YAPILANDIRMANI VE VERİ KAYNAĞINI BURAYA BAĞLA
+    // =========================================================================
+    const firebaseConfig = {
+      apiKey: "FIREBASE_API_KEY",
+      authDomain: "FIREBASE_AUTH_DOMAIN",
+      databaseURL: "FIREBASE_DATABASE_URL",
+      projectId: "FIREBASE_PROJECT_ID",
+      storageBucket: "FIREBASE_STORAGE_BUCKET",
+      messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
+      appId: "FIREBASE_APP_ID"
+    };
+
+    const hasRealFirebaseConfig =
+      Boolean(firebaseConfig.apiKey) && !firebaseConfig.apiKey.startsWith("FIREBASE_");
+
+    let auth = null;
+    let db = null;
+
+    if (hasRealFirebaseConfig && window.firebase) {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      auth = firebase.auth();
+      db = firebase.database();
+    }
+
+    // =========================================================================
+    // 2. DURUM VE YARDIMCI FONKSİYONLAR
+    // =========================================================================
+    const state = {
+      view: "home",
+      signup: false,
+      user: null,
+      rooms: [],
+      selectedRoomId: null,
+      openCreateOnEnter: false
+    };
+
+    const views = {
+      home: document.getElementById("view-home"),
+      login: document.getElementById("view-login"),
+      rooms: document.getElementById("view-rooms"),
+      detail: document.getElementById("view-detail")
+    };
+
+    function setView(viewName, opts = {}) {
+      if (opts.openCreate) {
+        state.openCreateOnEnter = true;
+      }
+      state.view = viewName;
+
+      Object.entries(views).forEach(([key, el]) => {
+        el.classList.toggle("hidden", key !== viewName);
+      });
+
+      document.querySelectorAll(".nav-btn").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.view === viewName);
+      });
+
+      if (viewName === "rooms") {
+        renderRooms();
+        const form = document.getElementById("createRoomForm");
+        if (state.openCreateOnEnter) {
+          form.classList.remove("hidden");
+          state.openCreateOnEnter = false;
+        }
+      }
+
+      if (viewName === "detail" && state.selectedRoomId) {
+        renderDetail(state.selectedRoomId);
+      }
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    document.querySelectorAll("[data-view]").forEach((el) => {
+      el.addEventListener("click", () => {
+        setView(el.dataset.view);
+      });
+    });
+
+    document.querySelectorAll("[data-open-create='true']").forEach((el) => {
+      el.addEventListener("click", () => {
+        setView("rooms", { openCreate: true });
+      });
+    });
+
+    // =========================================================================
+    // 3. KULLANICI OTURUMU (FIREBASE AUTH + YEREL YEDEK)
+    // =========================================================================
+    function syncUserUI() {
+      const pill = document.getElementById("headerUser");
+      const logoutBtn = document.getElementById("logoutBtn");
+      const loginBtn = document.getElementById("headerLoginBtn");
+
+      if (state.user) {
+        pill.textContent = state.user.name || state.user.email || "Oyuncu";
+        pill.classList.remove("hidden");
+        logoutBtn.classList.remove("hidden");
+        loginBtn.classList.add("hidden");
+      } else {
+        pill.classList.add("hidden");
+        logoutBtn.classList.add("hidden");
+        loginBtn.classList.remove("hidden");
+      }
+    }
+
+    function setAuthMode(isSignup) {
+      state.signup = isSignup;
+      document.getElementById("tabLogin").classList.toggle("selected", !isSignup);
+      document.getElementById("tabSignup").classList.toggle("selected", isSignup);
+      document.getElementById("nameFieldWrap").classList.toggle("hidden", !isSignup);
+      document.getElementById("authTitle").textContent = isSignup
+        ? "KADROYA KATIL."
+        : "TEKRAR HOŞ GELDİN.";
+      document.getElementById("authSubtitle").textContent = isSignup
+        ? "Hesabını oluştur, ilk maçına bir adım yaklaş."
+        : "Giriş yap ve kaldığın yerden devam et.";
+      document.getElementById("authSubmitBtn").innerHTML = isSignup
+        ? "Hesap oluştur <span>→</span>"
+        : "Giriş yap <span>→</span>";
+      document.getElementById("authError").classList.add("hidden");
+    }
+
+    document.getElementById("tabLogin").addEventListener("click", () => setAuthMode(false));
+    document.getElementById("tabSignup").addEventListener("click", () => setAuthMode(true));
+
+    document.getElementById("authForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const errBox = document.getElementById("authError");
+      errBox.classList.add("hidden");
+
+      const name = document.getElementById("authName").value.trim();
+      const email = document.getElementById("authEmail").value.trim();
+      const password = document.getElementById("authPassword").value;
+
+      try {
+        if (auth) {
+          if (state.signup) {
+            const cred = await auth.createUserWithEmailAndPassword(email, password);
+            if (name) {
+              await cred.user.updateProfile({ displayName: name });
+            }
+          } else {
+            await auth.signInWithEmailAndPassword(email, password);
+          }
+        } else {
+          state.user = {
+            uid: "local-" + btoa(email).slice(0, 10),
+            name: name || email.split("@")[0],
+            email
+          };
+          localStorage.setItem("kadrokur_user", JSON.stringify(state.user));
+          syncUserUI();
+        }
+        setView("rooms");
+      } catch (err) {
+        errBox.textContent = err.message || "İşlem tamamlanamadı. Bilgilerini kontrol et.";
+        errBox.classList.remove("hidden");
+      }
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      if (auth) {
+        await auth.signOut();
+      } else {
+        state.user = null;
+        localStorage.removeItem("kadrokur_user");
+        syncUserUI();
+      }
+      setView("home");
+    });
+
+    if (auth) {
+      auth.onAuthStateChanged((user) => {
+        state.user = user
+          ? {
+              uid: user.uid,
+              name: user.displayName || user.email?.split("@")[0] || "Oyuncu",
+              email: user.email || ""
+            }
+          : null;
+        syncUserUI();
+      });
+    } else {
+      const savedUser = localStorage.getItem("kadrokur_user");
+      if (savedUser) {
+        state.user = JSON.parse(savedUser);
+      }
+      syncUserUI();
+    }
+
+    // =========================================================================
+    // 4. ODA VERİLERİ (FIREBASE REALTIME DB + YEREL YEDEK)
+    // =========================================================================
+    const LOCAL_ROOMS_KEY = "kadrokur_rooms_v1";
+
+    function loadLocalRooms() {
+      try {
+        return JSON.parse(localStorage.getItem(LOCAL_ROOMS_KEY) || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveLocalRooms(list) {
+      localStorage.setItem(LOCAL_ROOMS_KEY, JSON.stringify(list));
+    }
+
+    function normalizeRoomsMap(rawObj) {
+      if (!rawObj) return [];
+      return Object.entries(rawObj)
+        .map(([id, val]) => {
+          const members = val.members || {};
+          const memberIds = Object.keys(members);
+          return {
+            id,
+            title: val.title || "Maç Odası",
+            city: val.city || "",
+            location: val.location || "",
+            startsAt: val.startsAt,
+            capacity: Number(val.capacity) || 14,
+            ownerId: val.ownerId || "",
+            memberIds,
+            memberCount: memberIds.length
+          };
+        })
+        .sort((a, b) => new Date(b.startsAt || 0) - new Date(a.startsAt || 0));
+    }
+
+    function subscribeRooms() {
+      if (db) {
+        db.ref("rooms").on("value", (snap) => {
+          state.rooms = normalizeRoomsMap(snap.val());
+          renderRooms();
+          if (state.view === "detail" && state.selectedRoomId) {
+            renderDetail(state.selectedRoomId);
+          }
+        });
+      } else {
+        state.rooms = loadLocalRooms();
+        renderRooms();
+      }
+    }
+
+    function renderRooms() {
+      const listEl = document.getElementById("roomList");
+      const emptyEl = document.getElementById("roomsEmpty");
+      const countEl = document.getElementById("roomCountLabel");
+
+      countEl.textContent = `${state.rooms.length} ODA`;
+
+      if (!state.rooms.length) {
+        emptyEl.classList.remove("hidden");
+        listEl.innerHTML = "";
+        return;
+      }
+
+      emptyEl.classList.add("hidden");
+      listEl.innerHTML = state.rooms
+        .map((room) => {
+          const dateText = room.startsAt
+            ? new Date(room.startsAt).toLocaleString("tr-TR", {
+                dateStyle: "medium",
+                timeStyle: "short"
+              })
+            : "Tarih belirtilmedi";
+          return `
+            <button type="button" class="room-row" data-room-id="${room.id}">
+              <div class="room-icon">KK</div>
+              <div class="room-title">
+                <h3>${escapeHtml(room.title)}</h3>
+                <span>${escapeHtml(room.city)} · ${escapeHtml(room.location)}</span>
+              </div>
+              <div class="room-meta">
+                <span>${dateText}</span>
+                <span>${room.memberCount} / ${room.capacity} hedef</span>
+              </div>
+              <span style="color: var(--green); font-weight: 700;">↗</span>
+            </button>
+          `;
+        })
+        .join("");
+
+      listEl.querySelectorAll("[data-room-id]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          state.selectedRoomId = btn.dataset.roomId;
+          setView("detail");
+        });
+      });
+    }
+
+    function renderDetail(roomId) {
+      const room = state.rooms.find((r) => r.id === roomId);
+      if (!room) {
+        setView("rooms");
+        return;
+      }
+
+      const currentUid = state.user?.uid || "guest";
+      const isOwner = room.ownerId && room.ownerId === currentUid;
+      const isJoined = room.memberIds?.includes(currentUid);
+
+      document.getElementById("detailTitle").textContent = room.title;
+      document.getElementById("detailCity").textContent = room.city || "-";
+      document.getElementById("detailLocation").textContent = room.location || "-";
+
+      const dt = room.startsAt ? new Date(room.startsAt) : null;
+      document.getElementById("detailDate").textContent = dt
+        ? dt.toLocaleDateString("tr-TR", { dateStyle: "long" })
+        : "-";
+      document.getElementById("detailTime").textContent = dt
+        ? dt.toLocaleTimeString("tr-TR", { timeStyle: "short" })
+        : "-";
+
+      document.getElementById("detailCount").textContent = `${room.memberCount} katılımcı`;
+      document.getElementById("detailCapacity").textContent = `Oyuncu hedefi: ${room.capacity}`;
+
+      const actionWrap = document.getElementById("detailActionWrap");
+      if (isOwner) {
+        actionWrap.innerHTML = `<span class="status-badge">ODA SAHİBİSİN</span>`;
+      } else {
+        actionWrap.innerHTML = `
+          <button type="button" id="toggleJoinBtn" class="${isJoined ? "secondary-btn" : "primary-btn"}">
+            ${isJoined ? "Katılımdan ayrıl" : "Maça katıl"}
+          </button>
+        `;
+        document.getElementById("toggleJoinBtn").addEventListener("click", async () => {
+          const nextJoin = !isJoined;
+          if (db) {
+            const memberRef = db.ref(`rooms/${room.id}/members/${currentUid}`);
+            if (nextJoin) {
+              await memberRef.set(true);
+            } else {
+              await memberRef.remove();
+            }
+          } else {
+            const updated = state.rooms.map((item) => {
+              if (item.id !== room.id) return item;
+              const set = new Set(item.memberIds || []);
+              if (nextJoin) set.add(currentUid);
+              else set.delete(currentUid);
+              const memberIds = Array.from(set);
+              return { ...item, memberIds, memberCount: memberIds.length };
+            });
+            state.rooms = updated;
+            saveLocalRooms(updated);
+            renderDetail(room.id);
+          }
+        });
+      }
+    }
+
+    document.getElementById("toggleCreateBtn").addEventListener("click", () => {
+      document.getElementById("createRoomForm").classList.toggle("hidden");
+    });
+
+    document.getElementById("emptyCreateBtn").addEventListener("click", () => {
+      document.getElementById("createRoomForm").classList.remove("hidden");
+    });
+
+    document.getElementById("createRoomForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const errBox = document.getElementById("roomError");
+      errBox.classList.add("hidden");
+
+      const title = document.getElementById("roomTitle").value.trim();
+      const city = document.getElementById("roomCity").value.trim();
+      const location = document.getElementById("roomLocation").value.trim();
+      const startsAt = document.getElementById("roomStartsAt").value;
+      const capacity = Number(document.getElementById("roomCapacity").value);
+
+      if (!startsAt || Number.isNaN(Date.parse(startsAt))) {
+        errBox.textContent = "Geçerli bir maç tarihi ve saati seç.";
+        errBox.classList.remove("hidden");
+        return;
+      }
+
+      const ownerId = state.user?.uid || "guest";
+      const payload = {
+        title,
+        city,
+        location,
+        startsAt: new Date(startsAt).toISOString(),
+        capacity,
+        ownerId,
+        members: { [ownerId]: true }
+      };
+
+      try {
+        let newId = "";
+        if (db) {
+          const ref = db.ref("rooms").push();
+          newId = ref.key;
+          await ref.set(payload);
+        } else {
+          newId = "oda-" + Date.now();
+          const newRoom = {
+            id: newId,
+            ...payload,
+            memberIds: [ownerId],
+            memberCount: 1
+          };
+          state.rooms = [newRoom, ...state.rooms];
+          saveLocalRooms(state.rooms);
+          renderRooms();
+        }
+
+        e.target.reset();
+        document.getElementById("createRoomForm").classList.add("hidden");
+        state.selectedRoomId = newId;
+        setView("detail");
+      } catch (err) {
+        errBox.textContent = err.message || "Oda oluşturulamadı.";
+        errBox.classList.remove("hidden");
+      }
+    });
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    subscribeRooms();
+  </script>
+</body>
+</html>

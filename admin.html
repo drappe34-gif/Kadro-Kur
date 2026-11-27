@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KadroKur | Yönetim Paneli</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #101827;
+      --line: rgba(255, 255, 255, 0.12);
+      --green: #34d399;
+      --green-bright: #7aebbf;
+      --green-foreground: #052b20;
+      --ink: #ffffff;
+      --subtle: #a9b7c8;
+      --danger: #f87171;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    .hidden { display: none !important; }
+    .topbar {
+      height: 76px;
+      padding: 0 5%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      background: rgba(9, 13, 22, 0.94);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .brand {
+      font-weight: 700;
+      font-size: 21px;
+      letter-spacing: -0.03em;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand span.accent { color: var(--green); }
+    .badge {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      color: var(--green);
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+    .login-card {
+      max-width: 420px;
+      margin: 60px auto;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 28px;
+      display: grid;
+      gap: 14px;
+    }
+    h1, h2 {
+      font-family: "Barlow Condensed", sans-serif;
+      margin: 0;
+      letter-spacing: 0.01em;
+    }
+    h1 { font-size: 44px; line-height: 0.95; }
+    h2 { font-size: 26px; }
+    p.sub { color: var(--subtle); font-size: 13px; margin: 4px 0 0; }
+    label { display: grid; gap: 6px; font-size: 12px; font-weight: 700; }
+    input {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      border-radius: 5px;
+      padding: 12px 14px;
+    }
+    .btn {
+      border: 1px solid var(--green);
+      background: var(--green);
+      color: var(--green-foreground);
+      font-weight: 700;
+      font-size: 13px;
+      padding: 11px 16px;
+      border-radius: 5px;
+    }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-weight: 600;
+      font-size: 12px;
+      padding: 9px 13px;
+      border-radius: 5px;
+    }
+    .btn-danger {
+      background: rgba(248, 113, 113, 0.14);
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      color: var(--danger);
+      font-weight: 700;
+      font-size: 12px;
+      padding: 7px 11px;
+      border-radius: 5px;
+    }
+    .err {
+      background: rgba(248, 113, 113, 0.14);
+      border: 1px solid rgba(248, 113, 113, 0.35);
+      color: #fecaca;
+      padding: 10px 12px;
+      border-radius: 5px;
+      font-size: 13px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin: 26px 0 34px;
+    }
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 20px;
+    }
+    .stat small {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      color: var(--green);
+      font-weight: 700;
+    }
+    .stat strong {
+      display: block;
+      font-size: 32px;
+      margin-top: 8px;
+    }
+    .section-box {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      margin-bottom: 28px;
+    }
+    .table-wrap { overflow-x: auto; margin-top: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    th {
+      color: var(--subtle);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .muted { color: var(--subtle); font-size: 12px; }
+    .row-actions { display: flex; gap: 10px; align-items: center; }
+    @media (max-width: 760px) {
+      .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span>KADRO<span class="accent">KUR</span></span>
+      <span class="badge">YÖNETİM PANELİ</span>
+    </div>
+    <div class="row-actions">
+      <a href="./index.html" class="btn-ghost" style="text-decoration:none;">Siteye Dön</a>
+      <button type="button" id="adminLogoutBtn" class="btn-ghost hidden">Çıkış Yap</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div id="loginBox" class="login-card">
+      <div>
+        <span class="badge">ADMIN GİRİŞİ</span>
+        <h1 style="margin-top: 10px;">YÖNETİM ARKA PLANI</h1>
+        <p class="sub">Kayıt olan üyeleri ve maç odalarını yönetmek için giriş yap.</p>
+      </div>
+      <form id="adminLoginForm" style="display:grid; gap:14px;">
+        <label>
+          E-posta
+          <input id="adminEmail" type="email" required placeholder="admin@email.com" />
+        </label>
+        <label>
+          Şifre
+          <input id="adminPassword" type="password" required placeholder="Şifren" />
+        </label>
+        <div id="adminErr" class="err hidden"></div>
+        <button type="submit" class="btn">Panele Gir →</button>
+      </form>
+    </div>
+
+    <div id="dashBox" class="hidden">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px;">
+        <div>
+          <span class="badge">CANLI VERİ</span>
+          <h1 style="margin-top:8px;">KONTROL MERKEZİ</h1>
+          <p id="adminWho" class="sub"></p>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <small>KAYITLI KULLANICI</small>
+          <strong id="statUsers">0</strong>
+        </div>
+        <div class="stat">
+          <small>MAÇ ODASI</small>
+          <strong id="statRooms">0</strong>
+        </div>
+        <div class="stat">
+          <small>TOPLAM KATILIM</small>
+          <strong id="statJoins">0</strong>
+        </div>
+      </div>
+
+      <div class="section-box">
+        <h2>KAYIT OLAN KULLANICILAR</h2>
+        <p class="sub">Uygulamaya üye olan veya giriş yapan profiller</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ad / Kullanıcı</th>
+                <th>E-posta</th>
+                <th>Son Giriş</th>
+                <th>UID</th>
+              </tr>
+            </thead>
+            <tbody id="usersTbody">
+              <tr><td colspan="4" class="muted">Yükleniyor...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-box">
+        <h2>MAÇ ODALARI & KATILIMCILAR</h2>
+        <p class="sub">Tüm odaları görüntüle veya gereksiz odaları sil</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Oda Adı</th>
+                <th>Şehir / Saha</th>
+                <th>Tarih</th>
+                <th>Katılım</th>
+                <th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="roomsTbody">
+              <tr><td colspan="5" class="muted">Yükleniyor...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDI6PGiO8ZWEMMz6HSU-6-AYXFCWnW7POc",
+      authDomain: "kadrokur34-b4115.firebaseapp.com",
+      databaseURL: "https://kadrokur34-b4115-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "kadrokur34-b4115",
+      storageBucket: "kadrokur34-b4115.firebasestorage.app",
+      messagingSenderId: "846977382574",
+      appId: "1:846977382574:web:42d9fc7a4fba8836ddd53f",
+      measurementId: "G-V6MPPQYNTZ"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    const loginBox = document.getElementById("loginBox");
+    const dashBox = document.getElementById("dashBox");
+    const adminErr = document.getElementById("adminErr");
+    const adminLogoutBtn = document.getElementById("adminLogoutBtn");
+
+    let usersMap = {};
+    let roomsMap = {};
+
+    function esc(v) {
+      return String(v || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function updateStats() {
+      const uCount = Object.keys(usersMap || {}).length;
+      const rEntries = Object.entries(roomsMap || {});
+      const joins = rEntries.reduce((acc, [, r]) => acc + Object.keys((r && r.members) || {}).length, 0);
+      document.getElementById("statUsers").textContent = String(uCount);
+      document.getElementById("statRooms").textContent = String(rEntries.length);
+      document.getElementById("statJoins").textContent = String(joins);
+    }
+
+    function renderUsers() {
+      const tbody = document.getElementById("usersTbody");
+      const list = Object.entries(usersMap || {});
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="4" class="muted">Henüz kayıtlı kullanıcı profili yok.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = list
+        .map(([uid, u]) => {
+          const lastSeen = u.lastSeen
+            ? new Date(u.lastSeen).toLocaleString("tr-TR", { dateStyle: "medium", timeStyle: "short" })
+            : "-";
+          return `
+            <tr>
+              <td><strong>${esc(u.name || "Oyuncu")}</strong></td>
+              <td>${esc(u.email || "-")}</td>
+              <td>${esc(lastSeen)}</td>
+              <td class="muted">${esc(uid)}</td>
+            </tr>
+          `;
+        })
+        .join("");
+    }
+
+    function renderRooms() {
+      const tbody = document.getElementById("roomsTbody");
+      const list = Object.entries(roomsMap || {});
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="muted">Henüz maç odası yok.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = list
+        .map(([id, r]) => {
+          const memberCount = Object.keys((r && r.members) || {}).length;
+          const dt = r.startsAt
+            ? new Date(r.startsAt).toLocaleString("tr-TR", { dateStyle: "medium", timeStyle: "short" })
+            : "-";
+          return `
+            <tr>
+              <td><strong>${esc(r.title || "Oda")}</strong></td>
+              <td>${esc(r.city || "-")} · ${esc(r.location || "-")}</td>
+              <td>${esc(dt)}</td>
+              <td>${memberCount} / ${esc(r.capacity || 14)}</td>
+              <td>
+                <button type="button" class="btn-danger" data-del-id="${esc(id)}">Sil</button>
+              </td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      tbody.querySelectorAll("[data-del-id]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const roomId = btn.dataset.delId;
+          if (!confirm("Bu maç odasını silmek istediğine emin misin?")) return;
+          await db.ref(`rooms/${roomId}`).remove();
+        });
+      });
+    }
+
+    function startListeners() {
+      db.ref("users").on("value", (snap) => {
+        usersMap = snap.val() || {};
+        renderUsers();
+        updateStats();
+      });
+      db.ref("rooms").on("value", (snap) => {
+        roomsMap = snap.val() || {};
+        renderRooms();
+        updateStats();
+      });
+    }
+
+    document.getElementById("adminLoginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      adminErr.classList.add("hidden");
+      const email = document.getElementById("adminEmail").value.trim();
+      const password = document.getElementById("adminPassword").value;
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+      } catch (err) {
+        adminErr.textContent = err.message || "Giriş başarısız.";
+        adminErr.classList.remove("hidden");
+      }
+    });
+
+    adminLogoutBtn.addEventListener("click", async () => {
+      await auth.signOut();
+    });
+
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        loginBox.classList.add("hidden");
+        dashBox.classList.remove("hidden");
+        adminLogoutBtn.classList.remove("hidden");
+        document.getElementById("adminWho").textContent = `Giriş yapan hesap: ${user.email || user.uid}`;
+        startListeners();
+      } else {
+        loginBox.classList.remove("hidden");
+        dashBox.classList.add("hidden");
+        adminLogoutBtn.classList.add("hidden");
+      }
+    });
+  </script>
+</body>
+</html>

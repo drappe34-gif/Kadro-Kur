@@ -18,6 +18,9 @@
     rel="stylesheet"
   />
 
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7620788317702116"
+     crossorigin="anonymous"></script>
+
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -35,7 +38,6 @@
       --ink: #ffffff;
       --subtle: #a9b7c8;
       --shadow: rgba(0, 0, 0, 0.42);
-      /* Halı saha görseli: kendi görsel URL'ni veya base64/path verini buraya yazabilirsin */
       --pitch-img: url("./assets/football-pitch.jpg");
     }
 
@@ -89,7 +91,6 @@
       display: none !important;
     }
 
-    /* Üst Menü */
     .topbar {
       height: 84px;
       padding: 0 6%;
@@ -215,7 +216,6 @@
       border-color: rgba(52, 211, 153, 0.45);
     }
 
-    /* Hero & Sağ Menü Kutusu */
     .hero {
       min-height: 640px;
       background-image:
@@ -486,7 +486,6 @@
       color: var(--subtle);
     }
 
-    /* Alt Bölüm */
     .below {
       max-width: 1480px;
       margin: 0 auto;
@@ -591,7 +590,6 @@
       margin-left: auto;
     }
 
-    /* Split Giriş / Üye Ol Ekranı */
     .auth-layout {
       min-height: calc(100vh - 84px);
       display: grid;
@@ -734,7 +732,6 @@
       border-radius: 4px;
     }
 
-    /* Maç Odaları & Detay */
     .app-main {
       max-width: 1180px;
       margin: 0 auto;
@@ -996,7 +993,6 @@
     </div>
   </header>
 
-  <!-- GÖRÜNÜM 1: ANA SAYFA -->
   <section id="view-home" class="page-view">
     <div class="hero">
       <div class="hero-grid">
@@ -1113,7 +1109,6 @@
     </footer>
   </section>
 
-  <!-- GÖRÜNÜM 2: GİRİŞ / ÜYE OL -->
   <section id="view-login" class="page-view hidden">
     <main class="auth-layout">
       <section class="auth-visual">
@@ -1175,7 +1170,6 @@
     </main>
   </section>
 
-  <!-- GÖRÜNÜM 3: MAÇ ODALARI -->
   <section id="view-rooms" class="page-view hidden">
     <main class="app-main">
       <div class="app-heading">
@@ -1243,7 +1237,6 @@
     </main>
   </section>
 
-  <!-- GÖRÜNÜM 4: ODA DETAYI -->
   <section id="view-detail" class="page-view hidden">
     <main class="app-main">
       <button type="button" class="back-link" data-view="rooms">← Tüm maç odaları</button>
@@ -1282,36 +1275,24 @@
   <script>
     document.getElementById("yearSpan").textContent = String(new Date().getFullYear());
 
-    // =========================================================================
-    // 1. KENDİ FIREBASE YAPILANDIRMANI VE VERİ KAYNAĞINI BURAYA BAĞLA
-    // =========================================================================
     const firebaseConfig = {
-      apiKey: "FIREBASE_API_KEY",
-      authDomain: "FIREBASE_AUTH_DOMAIN",
-      databaseURL: "FIREBASE_DATABASE_URL",
-      projectId: "FIREBASE_PROJECT_ID",
-      storageBucket: "FIREBASE_STORAGE_BUCKET",
-      messagingSenderId: "FIREBASE_MESSAGING_SENDER_ID",
-      appId: "FIREBASE_APP_ID"
+      apiKey: "AIzaSyDI6PGiO8ZWEMMz6HSU-6-AYXFCWnW7POc",
+      authDomain: "kadrokur34-b4115.firebaseapp.com",
+      databaseURL: "https://kadrokur34-b4115-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "kadrokur34-b4115",
+      storageBucket: "kadrokur34-b4115.firebasestorage.app",
+      messagingSenderId: "846977382574",
+      appId: "1:846977382574:web:42d9fc7a4fba8836ddd53f",
+      measurementId: "G-V6MPPQYNTZ"
     };
 
-    const hasRealFirebaseConfig =
-      Boolean(firebaseConfig.apiKey) && !firebaseConfig.apiKey.startsWith("FIREBASE_");
-
-    let auth = null;
-    let db = null;
-
-    if (hasRealFirebaseConfig && window.firebase) {
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-      }
-      auth = firebase.auth();
-      db = firebase.database();
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
     }
 
-    // =========================================================================
-    // 2. DURUM VE YARDIMCI FONKSİYONLAR
-    // =========================================================================
+    const auth = firebase.auth();
+    const db = firebase.database();
+
     const state = {
       view: "home",
       signup: false,
@@ -1370,9 +1351,6 @@
       });
     });
 
-    // =========================================================================
-    // 3. KULLANICI OTURUMU (FIREBASE AUTH + YEREL YEDEK)
-    // =========================================================================
     function syncUserUI() {
       const pill = document.getElementById("headerUser");
       const logoutBtn = document.getElementById("logoutBtn");
@@ -1420,23 +1398,13 @@
       const password = document.getElementById("authPassword").value;
 
       try {
-        if (auth) {
-          if (state.signup) {
-            const cred = await auth.createUserWithEmailAndPassword(email, password);
-            if (name) {
-              await cred.user.updateProfile({ displayName: name });
-            }
-          } else {
-            await auth.signInWithEmailAndPassword(email, password);
+        if (state.signup) {
+          const cred = await auth.createUserWithEmailAndPassword(email, password);
+          if (name) {
+            await cred.user.updateProfile({ displayName: name });
           }
         } else {
-          state.user = {
-            uid: "local-" + btoa(email).slice(0, 10),
-            name: name || email.split("@")[0],
-            email
-          };
-          localStorage.setItem("kadrokur_user", JSON.stringify(state.user));
-          syncUserUI();
+          await auth.signInWithEmailAndPassword(email, password);
         }
         setView("rooms");
       } catch (err) {
@@ -1446,51 +1414,29 @@
     });
 
     document.getElementById("logoutBtn").addEventListener("click", async () => {
-      if (auth) {
-        await auth.signOut();
-      } else {
-        state.user = null;
-        localStorage.removeItem("kadrokur_user");
-        syncUserUI();
-      }
+      await auth.signOut();
       setView("home");
     });
 
-    if (auth) {
-      auth.onAuthStateChanged((user) => {
-        state.user = user
-          ? {
-              uid: user.uid,
-              name: user.displayName || user.email?.split("@")[0] || "Oyuncu",
-              email: user.email || ""
-            }
-          : null;
-        syncUserUI();
-      });
-    } else {
-      const savedUser = localStorage.getItem("kadrokur_user");
-      if (savedUser) {
-        state.user = JSON.parse(savedUser);
-      }
+    auth.onAuthStateChanged(async (user) => {
+      state.user = user
+        ? {
+            uid: user.uid,
+            name: user.displayName || user.email?.split("@")[0] || "Oyuncu",
+            email: user.email || ""
+          }
+        : null;
       syncUserUI();
-    }
 
-    // =========================================================================
-    // 4. ODA VERİLERİ (FIREBASE REALTIME DB + YEREL YEDEK)
-    // =========================================================================
-    const LOCAL_ROOMS_KEY = "kadrokur_rooms_v1";
-
-    function loadLocalRooms() {
-      try {
-        return JSON.parse(localStorage.getItem(LOCAL_ROOMS_KEY) || "[]");
-      } catch {
-        return [];
+      if (user) {
+        await db.ref(`users/${user.uid}`).update({
+          uid: user.uid,
+          name: user.displayName || user.email?.split("@")[0] || "Oyuncu",
+          email: user.email || "",
+          lastSeen: new Date().toISOString()
+        });
       }
-    }
-
-    function saveLocalRooms(list) {
-      localStorage.setItem(LOCAL_ROOMS_KEY, JSON.stringify(list));
-    }
+    });
 
     function normalizeRoomsMap(rawObj) {
       if (!rawObj) return [];
@@ -1514,18 +1460,13 @@
     }
 
     function subscribeRooms() {
-      if (db) {
-        db.ref("rooms").on("value", (snap) => {
-          state.rooms = normalizeRoomsMap(snap.val());
-          renderRooms();
-          if (state.view === "detail" && state.selectedRoomId) {
-            renderDetail(state.selectedRoomId);
-          }
-        });
-      } else {
-        state.rooms = loadLocalRooms();
+      db.ref("rooms").on("value", (snap) => {
+        state.rooms = normalizeRoomsMap(snap.val());
         renderRooms();
-      }
+        if (state.view === "detail" && state.selectedRoomId) {
+          renderDetail(state.selectedRoomId);
+        }
+      });
     }
 
     function renderRooms() {
@@ -1612,25 +1553,11 @@
         `;
         document.getElementById("toggleJoinBtn").addEventListener("click", async () => {
           const nextJoin = !isJoined;
-          if (db) {
-            const memberRef = db.ref(`rooms/${room.id}/members/${currentUid}`);
-            if (nextJoin) {
-              await memberRef.set(true);
-            } else {
-              await memberRef.remove();
-            }
+          const memberRef = db.ref(`rooms/${room.id}/members/${currentUid}`);
+          if (nextJoin) {
+            await memberRef.set(true);
           } else {
-            const updated = state.rooms.map((item) => {
-              if (item.id !== room.id) return item;
-              const set = new Set(item.memberIds || []);
-              if (nextJoin) set.add(currentUid);
-              else set.delete(currentUid);
-              const memberIds = Array.from(set);
-              return { ...item, memberIds, memberCount: memberIds.length };
-            });
-            state.rooms = updated;
-            saveLocalRooms(updated);
-            renderDetail(room.id);
+            await memberRef.remove();
           }
         });
       }
@@ -1673,23 +1600,9 @@
       };
 
       try {
-        let newId = "";
-        if (db) {
-          const ref = db.ref("rooms").push();
-          newId = ref.key;
-          await ref.set(payload);
-        } else {
-          newId = "oda-" + Date.now();
-          const newRoom = {
-            id: newId,
-            ...payload,
-            memberIds: [ownerId],
-            memberCount: 1
-          };
-          state.rooms = [newRoom, ...state.rooms];
-          saveLocalRooms(state.rooms);
-          renderRooms();
-        }
+        const ref = db.ref("rooms").push();
+        const newId = ref.key;
+        await ref.set(payload);
 
         e.target.reset();
         document.getElementById("createRoomForm").classList.add("hidden");

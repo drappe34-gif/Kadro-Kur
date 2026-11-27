@@ -18,6 +18,9 @@
     rel="stylesheet"
   />
 
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7620788317702116"
+     crossorigin="anonymous"></script>
+
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -35,7 +38,6 @@
       --ink: #ffffff;
       --subtle: #a9b7c8;
       --shadow: rgba(0, 0, 0, 0.42);
-      /* Halı saha görseli: kendi görsel URL'ni veya base64/path verini buraya yazabilirsin */
       --pitch-img: url("./assets/football-pitch.jpg");
     }
 
@@ -89,7 +91,6 @@
       display: none !important;
     }
 
-    /* Üst Menü */
     .topbar {
       height: 84px;
       padding: 0 6%;
@@ -215,7 +216,6 @@
       border-color: rgba(52, 211, 153, 0.45);
     }
 
-    /* Hero & Sağ Menü Kutusu */
     .hero {
       min-height: 640px;
       background-image:
@@ -486,7 +486,6 @@
       color: var(--subtle);
     }
 
-    /* Alt Bölüm */
     .below {
       max-width: 1480px;
       margin: 0 auto;
@@ -591,7 +590,6 @@
       margin-left: auto;
     }
 
-    /* Split Giriş / Üye Ol Ekranı */
     .auth-layout {
       min-height: calc(100vh - 84px);
       display: grid;
@@ -734,7 +732,6 @@
       border-radius: 4px;
     }
 
-    /* Maç Odaları & Detay */
     .app-main {
       max-width: 1180px;
       margin: 0 auto;
@@ -996,7 +993,6 @@
     </div>
   </header>
 
-  <!-- GÖRÜNÜM 1: ANA SAYFA -->
   <section id="view-home" class="page-view">
     <div class="hero">
       <div class="hero-grid">
@@ -1113,7 +1109,6 @@
     </footer>
   </section>
 
-  <!-- GÖRÜNÜM 2: GİRİŞ / ÜYE OL -->
   <section id="view-login" class="page-view hidden">
     <main class="auth-layout">
       <section class="auth-visual">
@@ -1175,7 +1170,6 @@
     </main>
   </section>
 
-  <!-- GÖRÜNÜM 3: MAÇ ODALARI -->
   <section id="view-rooms" class="page-view hidden">
     <main class="app-main">
       <div class="app-heading">
@@ -1243,7 +1237,6 @@
     </main>
   </section>
 
-  <!-- GÖRÜNÜM 4: ODA DETAYI -->
   <section id="view-detail" class="page-view hidden">
     <main class="app-main">
       <button type="button" class="back-link" data-view="rooms">← Tüm maç odaları</button>
@@ -1282,9 +1275,6 @@
   <script>
     document.getElementById("yearSpan").textContent = String(new Date().getFullYear());
 
-    // =========================================================================
-    // 1. KENDİ FIREBASE YAPILANDIRMANI VE VERİ KAYNAĞINI BURAYA BAĞLA
-    // =========================================================================
     const firebaseConfig = {
       apiKey: "FIREBASE_API_KEY",
       authDomain: "FIREBASE_AUTH_DOMAIN",
@@ -1309,9 +1299,6 @@
       db = firebase.database();
     }
 
-    // =========================================================================
-    // 2. DURUM VE YARDIMCI FONKSİYONLAR
-    // =========================================================================
     const state = {
       view: "home",
       signup: false,
@@ -1370,9 +1357,6 @@
       });
     });
 
-    // =========================================================================
-    // 3. KULLANICI OTURUMU (FIREBASE AUTH + YEREL YEDEK)
-    // =========================================================================
     function syncUserUI() {
       const pill = document.getElementById("headerUser");
       const logoutBtn = document.getElementById("logoutBtn");
@@ -1475,9 +1459,6 @@
       syncUserUI();
     }
 
-    // =========================================================================
-    // 4. ODA VERİLERİ (FIREBASE REALTIME DB + YEREL YEDEK)
-    // =========================================================================
     const LOCAL_ROOMS_KEY = "kadrokur_rooms_v1";
 
     function loadLocalRooms() {

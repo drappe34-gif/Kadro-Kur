@@ -1429,10 +1429,16 @@
       syncUserUI();
 
       if (user) {
-        await db.ref(`users/${user.uid}`).update({
+        const displayName = (user.displayName || user.email?.split("@")[0] || "Oyuncu").slice(0, 40);
+        const userRef = db.ref(`users/${user.uid}`);
+        const snap = await userRef.get();
+        await userRef.update({
           uid: user.uid,
-          name: user.displayName || user.email?.split("@")[0] || "Oyuncu",
+          name: displayName,
           email: user.email || "",
+          createdAt: snap.exists() && typeof snap.val()?.createdAt === "number"
+            ? snap.val().createdAt
+            : Date.now(),
           lastSeen: new Date().toISOString()
         });
       }
